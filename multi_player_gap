@@ -1,0 +1,202 @@
+from math import floor
+from random import random, shuffle
+import matplotlib.pyplot as plt
+
+
+class Cards():
+    def __init__(self, divs, balance):
+        self.doub = []
+        self.sand = []
+        self.pot = []
+        self.divs = divs
+        self.turn = 0
+        self.cardsPlayed = 0
+        self.slapCount = 0
+        self.cards = [floor(x/4)+2 for x in range(52)]
+        shuffle(self.cards)
+
+        self.balance = balance # 0 = 25/25/25/25, 1 = 28/24/24/24, 2 = 30/30/20/20, 3 = 40/40/10/10, 4 = 30/30/30/10
+        if divs == 1:
+            self.decks = self.cards
+        elif divs == 2:
+            self.decks = [self.cards[0:floor(len(self.cards)/2)], self.cards[floor(len(self.cards)/2):len(self.cards)]]
+        elif divs == 4:
+            self.decks = [self.cards[0:floor(len(self.cards)/4)], self.cards[floor(len(self.cards)/4):floor(len(self.cards)/2)], self.cards[floor(len(self.cards)/2):floor(len(self.cards)*0.75)], self.cards[floor(len(self.cards)*0.75):floor(len(self.cards))]]
+        else:
+            raise Exception("invalid divs")
+
+    def placeCard(self, decknum):
+        if len(self.decks[decknum]) == 0:
+            # print(f"player {decknum} ran out of cards")
+            return False
+        self.pot.append(self.decks[decknum][0])
+        self.decks[decknum].pop(0)
+        self.cardsPlayed += 1
+        return True
+
+    def checkSlaps(self):
+        if len(self.pot) > 1:
+            if self.pot[-1] == self.pot[-2]:
+                # print("doubs equal\n\n")
+                self.slapCount += 1
+                return True
+        if len(self.pot) > 2:
+            if self.pot[-1] == self.pot[-3]:
+                # print("sands equal\n\n")
+                self.slapCount += 1
+                return True
+        return False
+    
+    def checkFace(self):
+        if (self.pot[-1] > 10):
+            return self.pot[-1] - 10
+        else:
+            return 0
+
+    def checkVicRoy(self):
+        playersRanOut = 0
+        for i in range(self.divs):
+            if len(self.decks[i]) == 0:
+                playersRanOut += 1
+        if playersRanOut == self.divs -1:
+            print("VIC ROY ACHIEVED")
+            return True
+        else: return False
+    
+    def whoWon(self):
+        for i in range(self.divs):
+            if len(self.decks[i]) > 0:
+                return i
+
+    def playFace(self):
+        for i in range(self.checkFace()):
+            # print(f"turn is {self.turn}")
+            if self.placeCard(self.turn) == False:
+                self.nextTurn()
+                if self.placeCard(self.turn) == False:
+                    self.nextTurn()
+                    if self.placeCard(self.turn) == False:
+                        self.nextTurn()
+                        if self.placeCard(self.turn) == False:
+                            self.nextTurn
+                            print("somethings very wrong... line 58")
+            # print(f"pot is {self.pot}") #breakpoint somewhere near here
+            if self.checkSlaps():
+                self.slap()
+                return
+            if self.checkFace() != 0:
+                self.collector = self.turn
+                # print(f"collector is {self.collector}, set at playFace")
+                self.nextTurn()
+                self.playFace()
+                return
+        self.collectPot(self.collector)
+ 
+    def collectPot(self, decknum):
+        # print(f"player {decknum} claims the pot!")
+        for i in self.pot:
+            self.decks[decknum].append(i)
+        self.pot = []
+        self.turn = decknum
+    
+    def slap(self):
+        slapNum = random() * 100
+        if self.balance == 0:
+            if slapNum < 25:
+                slapper = 0
+            elif slapNum < 50:
+                slapper = 1
+            elif slapNum < 75:
+                slapper = 2
+            else: slapper = 3
+        elif self.balance == 1:
+            if slapNum < 28:
+                slapper = 0
+            elif slapNum < 52:
+                slapper = 1
+            elif slapNum < 76:
+                slapper = 2
+            else: slapper = 3
+        elif self.balance == 2:
+            if slapNum < 30:
+                slapper = 0
+            elif slapNum < 60:
+                slapper = 1
+            elif slapNum < 80:
+                slapper = 2
+            else: slapper = 3
+        elif self.balance == 3:
+            if slapNum < 40:
+                slapper = 0
+            elif slapNum < 80:
+                slapper = 1
+            elif slapNum < 90:
+                slapper = 2
+            else: slapper = 3
+        elif self.balance == 4:
+            if slapNum < 30:
+                slapper = 0
+            elif slapNum < 60:
+                slapper = 1
+            elif slapNum < 90:
+                slapper = 2
+            else: slapper = 3
+
+        self.collectPot(slapper)
+
+    def nextTurn(self):
+        self.turn += 1
+        self.turn = self.turn % self.divs
+    
+    def runGame(self):
+        if self.checkVicRoy():
+            return True
+        # print(f"turn is {self.turn}")
+        if self.placeCard(self.turn) == False:
+            self.nextTurn()
+            if self.placeCard(self.turn) == False:
+                    self.nextTurn()
+                    if self.placeCard(self.turn) == False:
+                        self.nextTurn()
+                        if self.placeCard(self.turn) == False:
+                            self.nextTurn
+                            print("somethings very wrong... line 98")
+        self.collector = self.turn
+        self.nextTurn()
+        # print(f"pot is {self.pot}")
+        # print(f"size of decks are: {[len(self.decks[x]) for x in range(4)]}")
+        if self.checkSlaps():
+            self.slap()
+            return
+        if self.checkFace() != 0: #breakpoint
+            # print(f"collector is {self.collector}, set in for loop")
+            self.playFace()
+        return False #breakpoint
+
+
+
+
+games = []
+winner = [0, 0, 0, 0]
+
+# print(foo.cards)
+# print(foo.decks)
+
+for i in range(1000):
+    games.append(Cards(4, 4))
+
+    while True:
+        if games[i].runGame():
+            print(f"game over with {games[i].cardsPlayed} turns and {games[i].slapCount} slaps and player {games[i].whoWon()} won")
+            winner[games[i].whoWon()] += 1
+
+            break
+
+plt.bar([0, 1, 2, 3], winner, color = "blue", width = 0.6)
+plt.xlabel("Players")
+plt.ylabel("Wins")
+plt.title("Wins by Players")
+
+print(winner)
+
+plt.show()

@@ -176,10 +176,15 @@ for i in range(1000):
     while True:
         if games[i].runGame():
             print(f"game over with {games[i].cardsPlayed} turns and {games[i].slapCount} slaps and player {games[i].whoWon()} won")
-            plt.scatter(games[i].whoWon(), games[i].cardsPlayed)
             winner[games[i].whoWon()] += 1
 
             break
-    
+
+plt.bar([0, 1, 2, 3], winner, color = "blue", width = 0.6)
+plt.xlabel("Players")
+plt.ylabel("Wins")
+plt.title("Wins by Players")
+
 print(winner)
+
 plt.show()
